@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Catalog3D external-origin smoke test</title>
+    <style>
+      body { background: #ece7de; color: #201c17; font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; }
+      main { margin: auto; max-width: 1000px; }
+      #catalog3d-room { background: #fff; border: 1px solid #b9ae9d; height: 620px; }
+      #status { font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>External merchant page</h1>
+      <p id="status">Loading SDK…</p>
+      <div id="catalog3d-room"></div>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const host = params.get("host") || "http://127.0.0.1:3000";
+      const productId = params.get("productId") || "sample__oak-arc-lounge-chair";
+      const target = document.querySelector("#catalog3d-room");
+      const status = document.querySelector("#status");
+      target.addEventListener("catalog3d:ready", () => { status.textContent = "READY"; });
+      target.addEventListener("catalog3d:room-ready", () => { status.textContent = "ROOM_READY"; });
+      target.addEventListener("catalog3d:error", (event) => {
+        status.textContent = `ERROR:${event.detail.code}`;
+      });
+      const script = document.createElement("script");
+      script.src = `${host}/embed/v1/catalog3d.js`;
+      script.onload = () => {
+        Catalog3D.mount({
+          target,
+          siteId: "catalog3d-demo",
+          productId,
+          locale: "en",
+          appearance: { theme: "light" },
+        }).catch(() => undefined);
+      };
+      script.onerror = () => { status.textContent = "ERROR:SDK_LOAD"; };
+      document.head.appendChild(script);
+    </script>
+  </body>
+</html>
