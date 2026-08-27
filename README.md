@@ -19,7 +19,24 @@ The public, zero-runtime-dependency loader for Catalog3D room experiences. It cr
 </script>
 ```
 
-The promise resolves to `{ destroy() }` after the iframe is ready. Product changes destroy and remount the experience.
+The promise resolves after the iframe is ready. Product changes destroy and remount the experience.
+
+```js
+const room = await Catalog3D.mount({
+  target: "#catalog3d-room",
+  siteId: "your-publishable-site-id",
+  productId: "your-product-id",
+});
+
+await room.requestRemoval({
+  description: "remove the floor lamp beside the sofa",
+});
+```
+
+Call `requestRemoval()` after `catalog3d:room-ready`. Its promise confirms that
+Catalog3D accepted the intent; Catalog3D owns localization, UI state, processing,
+and the resulting room update. Descriptions are plain text from 1 to 500
+characters. The handle also contains `destroy()`.
 
 ## Declarative usage
 

@@ -9,7 +9,7 @@ const outputDirectory = resolve(projectRoot, "dist");
 await mkdir(outputDirectory, { recursive: true });
 await build({
   banner: {
-    js: "/*! Catalog3D Embed v1.0.0 | https://catalog3d.ai */",
+    js: "/*! Catalog3D Embed v1.1.0 | https://catalog3d.ai */",
   },
   bundle: true,
   entryPoints: [resolve(projectRoot, "src/index.ts")],

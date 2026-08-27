@@ -1,6 +1,8 @@
 const PROTOCOL = "catalog3d:embed:v1" as const;
 const DEFAULT_HOST = "https://catalog3d.ai";
 const READY_TIMEOUT_MS = 20_000;
+const REQUEST_TIMEOUT_MS = 10_000;
+const REMOVAL_DESCRIPTION_MAX_LENGTH = 500;
 const SITE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,63}$/u;
 const PRODUCT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$/u;
 const LOCALES = new Set(["en", "de", "fr"] as const);
@@ -10,10 +12,13 @@ export type Catalog3DLocale = "en" | "de" | "fr";
 export type Catalog3DTheme = "auto" | "dark" | "light";
 export type Catalog3DErrorCode =
   | "FRAME_LOAD_FAILED"
+  | "BUSY"
   | "INTERNAL_ERROR"
   | "INVALID_CONFIG"
+  | "INVALID_REQUEST"
   | "ORIGIN_DENIED"
   | "PRODUCT_NOT_FOUND"
+  | "ROOM_NOT_READY"
   | "SITE_NOT_FOUND"
   | "TARGET_IN_USE"
   | "TARGET_NOT_FOUND"
@@ -28,7 +33,14 @@ export type Catalog3DMountOptions = {
   appearance?: { theme?: Catalog3DTheme };
 };
 
-export type Catalog3DHandle = { destroy(): void };
+export type Catalog3DRemovalRequest = {
+  description: string;
+};
+
+export type Catalog3DHandle = {
+  destroy(): void;
+  requestRemoval(request: Catalog3DRemovalRequest): Promise<void>;
+};
 
 type PublicConfiguration = Readonly<{
   appearance: Readonly<{ theme: Catalog3DTheme }>;
@@ -41,7 +53,13 @@ type PublicConfiguration = Readonly<{
 type FrameMessage = {
   protocol: typeof PROTOCOL;
   instanceId: string;
-  type: "error" | "ready" | "room-ready";
+  type:
+    | "error"
+    | "ready"
+    | "removal-accepted"
+    | "removal-rejected"
+    | "room-ready";
+  requestId?: string;
   error?: {
     code?: unknown;
     message?: unknown;
@@ -50,10 +68,13 @@ type FrameMessage = {
 
 const PUBLIC_ERROR_CODES = new Set<Catalog3DErrorCode>([
   "FRAME_LOAD_FAILED",
+  "BUSY",
   "INTERNAL_ERROR",
   "INVALID_CONFIG",
+  "INVALID_REQUEST",
   "ORIGIN_DENIED",
   "PRODUCT_NOT_FOUND",
+  "ROOM_NOT_READY",
   "SITE_NOT_FOUND",
   "TARGET_IN_USE",
   "TARGET_NOT_FOUND",
@@ -72,6 +93,17 @@ export class Catalog3DError extends Error {
 
 const trimValue = (value: unknown) =>
   typeof value === "string" ? value.trim() : "";
+
+const normalizeRemovalRequest = (value: Catalog3DRemovalRequest) => {
+  const description = trimValue(value?.description);
+  if (!description || description.length > REMOVAL_DESCRIPTION_MAX_LENGTH) {
+    throw new Catalog3DError(
+      "INVALID_REQUEST",
+      "Catalog3D removal description must contain between 1 and 500 characters.",
+    );
+  }
+  return Object.freeze({ description });
+};
 
 const makeInstanceId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -157,7 +189,21 @@ const readFrameMessage = (value: unknown): FrameMessage | null => {
   if (
     candidate.protocol !== PROTOCOL ||
     typeof candidate.instanceId !== "string" ||
-    !["error", "ready", "room-ready"].includes(candidate.type || "")
+    ![
+      "error",
+      "ready",
+      "removal-accepted",
+      "removal-rejected",
+      "room-ready",
+    ].includes(candidate.type || "")
+  ) {
+    return null;
+  }
+  if (
+    ["removal-accepted", "removal-rejected"].includes(candidate.type || "") &&
+    (typeof candidate.requestId !== "string" ||
+      !candidate.requestId ||
+      candidate.requestId.length > 128)
   ) {
     return null;
   }
@@ -179,7 +225,7 @@ const toPublicError = (message: FrameMessage) => {
   return new Catalog3DError(code, safeMessage);
 };
 
-export const version = "1.0.0" as const;
+export const version = "1.1.0" as const;
 
 export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> {
   let target: Element | null = null;
@@ -214,8 +260,14 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
   let destroyed = false;
   let ready = false;
   let readyTimeout = 0;
+  let requestSequence = 0;
   let rejectReady: (error: Catalog3DError) => void = () => undefined;
   let resolveReady: (handle: Catalog3DHandle) => void = () => undefined;
+  const pendingRequests = new Map<string, {
+    reject: (error: Catalog3DError) => void;
+    resolve: () => void;
+    timeout: number;
+  }>();
 
   wrapper.dataset.catalog3dEmbed = "v1";
   wrapper.style.cssText =
@@ -241,6 +293,15 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
       frame.removeEventListener("load", handleLoad);
       frame.removeEventListener("error", handleFrameError);
       mountedTargets.delete(target!);
+      const closedError = new Catalog3DError(
+        "INTERNAL_ERROR",
+        "Catalog3D closed before the request was accepted.",
+      );
+      pendingRequests.forEach((pending) => {
+        window.clearTimeout(pending.timeout);
+        pending.reject(closedError);
+      });
+      pendingRequests.clear();
     }
     if (removeDom) wrapper.remove();
   };
@@ -248,6 +309,54 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
   const handle: Catalog3DHandle = Object.freeze({
     destroy() {
       cleanup(true);
+    },
+    requestRemoval(request) {
+      let normalizedRequest: Readonly<Catalog3DRemovalRequest>;
+      try {
+        if (destroyed || !ready || !frame.contentWindow) {
+          throw new Catalog3DError(
+            "INTERNAL_ERROR",
+            "Catalog3D is not available for removal requests.",
+          );
+        }
+        normalizedRequest = normalizeRemovalRequest(request);
+      } catch (error) {
+        const publicError = error instanceof Catalog3DError
+          ? error
+          : new Catalog3DError("INVALID_REQUEST", "Catalog3D removal request is invalid.");
+        dispatchPublicEvent(target!, "catalog3d:error", {
+          code: publicError.code,
+          message: publicError.message,
+        });
+        return Promise.reject(publicError);
+      }
+
+      const requestId = `${instanceId}:removal:${++requestSequence}`;
+      return new Promise<void>((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          pendingRequests.delete(requestId);
+          const error = new Catalog3DError(
+            "TIMEOUT",
+            "Catalog3D took too long to accept the removal request.",
+          );
+          dispatchPublicEvent(target!, "catalog3d:error", {
+            code: error.code,
+            message: error.message,
+          });
+          reject(error);
+        }, REQUEST_TIMEOUT_MS);
+        pendingRequests.set(requestId, { reject, resolve, timeout });
+        frame.contentWindow!.postMessage(
+          {
+            protocol: PROTOCOL,
+            type: "removal-request",
+            instanceId,
+            requestId,
+            description: normalizedRequest.description,
+          },
+          sdkHost,
+        );
+      });
     },
   });
   mountedTargets.set(target, handle);
@@ -305,6 +414,27 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
     }
     if (message.type === "room-ready") {
       if (ready) dispatchPublicEvent(target!, "catalog3d:room-ready");
+      return;
+    }
+    if (
+      message.type === "removal-accepted" ||
+      message.type === "removal-rejected"
+    ) {
+      if (!ready || !message.requestId) return;
+      const pending = pendingRequests.get(message.requestId);
+      if (!pending) return;
+      pendingRequests.delete(message.requestId);
+      window.clearTimeout(pending.timeout);
+      if (message.type === "removal-accepted") {
+        pending.resolve();
+        return;
+      }
+      const error = toPublicError(message);
+      dispatchPublicEvent(target!, "catalog3d:error", {
+        code: error.code,
+        message: error.message,
+      });
+      pending.reject(error);
       return;
     }
     fail(toPublicError(message), false);

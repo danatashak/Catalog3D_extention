@@ -11,8 +11,14 @@ const frameMessage = (
   frame: HTMLIFrameElement,
   origin: string,
   instanceId: string,
-  type: "error" | "ready" | "room-ready",
+  type:
+    | "error"
+    | "ready"
+    | "removal-accepted"
+    | "removal-rejected"
+    | "room-ready",
   error?: { code: string; message: string },
+  requestId?: string,
 ) => {
   window.dispatchEvent(
     new MessageEvent("message", {
@@ -21,6 +27,7 @@ const frameMessage = (
         instanceId,
         type,
         ...(error ? { error } : {}),
+        ...(requestId ? { requestId } : {}),
       },
       origin,
       source: frame.contentWindow,
@@ -74,10 +81,81 @@ describe("Catalog3D public embed SDK", () => {
 
     frameMessage(frame, "https://catalog3d.ai", "instance-test", "ready");
     const handle = await mounted;
-    expect(Object.keys(handle)).toEqual(["destroy"]);
+    expect(Object.keys(handle)).toEqual(["destroy", "requestRemoval"]);
     expect(readyListener).toHaveBeenCalledTimes(1);
     handle.destroy();
     expect(target.querySelector("iframe")).toBeNull();
+  });
+
+  it("passes a normalized text removal intent and resolves on trusted acceptance", async () => {
+    const { mount } = await importSdk();
+    const target = document.querySelector("#room")!;
+    const mounted = mount({
+      target,
+      siteId: "catalog3d-demo",
+      productId: "sample__oak-arc-lounge-chair",
+    });
+    const frame = target.querySelector("iframe")!;
+    const postMessage = vi.spyOn(frame.contentWindow!, "postMessage");
+    frameMessage(frame, "https://catalog3d.ai", "instance-test", "ready");
+    const handle = await mounted;
+
+    const accepted = handle.requestRemoval({
+      description: "  remove the floor lamp by the sofa  ",
+    });
+    expect(postMessage).toHaveBeenCalledWith({
+      protocol: "catalog3d:embed:v1",
+      type: "removal-request",
+      instanceId: "instance-test",
+      requestId: "instance-test:removal:1",
+      description: "remove the floor lamp by the sofa",
+    }, "https://catalog3d.ai");
+
+    frameMessage(
+      frame,
+      "https://catalog3d.ai",
+      "instance-test",
+      "removal-accepted",
+      undefined,
+      "instance-test:removal:1",
+    );
+    await expect(accepted).resolves.toBeUndefined();
+    handle.destroy();
+  });
+
+  it("rejects invalid removal text locally and maps frame rejections safely", async () => {
+    const { mount } = await importSdk();
+    const target = document.querySelector("#room")!;
+    const mounted = mount({
+      target,
+      siteId: "catalog3d-demo",
+      productId: "sample__oak-arc-lounge-chair",
+    });
+    const frame = target.querySelector("iframe")!;
+    frameMessage(frame, "https://catalog3d.ai", "instance-test", "ready");
+    const handle = await mounted;
+
+    await expect(handle.requestRemoval({ description: "   " })).rejects.toEqual(
+      expect.objectContaining({ code: "INVALID_REQUEST" }),
+    );
+
+    const rejected = handle.requestRemoval({ description: "remove the chair" });
+    frameMessage(
+      frame,
+      "https://catalog3d.ai",
+      "instance-test",
+      "removal-rejected",
+      {
+        code: "ROOM_NOT_READY",
+        message: "Upload and prepare a room before requesting object removal.",
+      },
+      "instance-test:removal:1",
+    );
+    await expect(rejected).rejects.toEqual(
+      expect.objectContaining({ code: "ROOM_NOT_READY" }),
+    );
+    expect(target.querySelector("iframe")).not.toBeNull();
+    handle.destroy();
   });
 
   it("ignores messages from another origin or iframe", async () => {
