@@ -36,7 +36,11 @@
           siteId: "catalog3d-demo",
           productId,
           locale: "en",
-          appearance: { theme: "light" },
+          appearance: {
+            theme: "light",
+            accentColor: "#6750a4",
+            fontFamily: "Inter, system-ui, sans-serif",
+          },
         }).catch(() => undefined);
       };
       script.onerror = () => { status.textContent = "ERROR:SDK_LOAD"; };

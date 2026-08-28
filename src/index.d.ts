@@ -8,6 +8,10 @@ export type Catalog3DMountOptions = {
   variantId?: string;
   locale?: Catalog3DLocale;
   appearance?: {
+    /** Opaque three- or six-digit hex color, for example `#6750a4`. */
+    accentColor?: string;
+    /** A font-family stack available inside the Catalog3D iframe. */
+    fontFamily?: string;
     theme?: Catalog3DTheme;
   };
 };
@@ -39,7 +43,7 @@ export declare class Catalog3DError extends Error {
   readonly code: Catalog3DErrorCode;
 }
 
-export declare const version = "1.1.0";
+export declare const version = "1.2.0";
 export declare function mount(
   options: Catalog3DMountOptions,
 ): Promise<Catalog3DHandle>;

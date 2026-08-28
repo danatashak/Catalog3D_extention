@@ -14,7 +14,11 @@ The public, zero-runtime-dependency loader for Catalog3D room experiences. It cr
     productId: "your-product-id",
     variantId: "optional-variant-id",
     locale: "en",
-    appearance: { theme: "auto" },
+    appearance: {
+      theme: "auto",
+      accentColor: "#6750a4",
+      fontFamily: "Inter, system-ui, sans-serif",
+    },
   });
 </script>
 ```
@@ -46,9 +50,17 @@ characters. The handle also contains `destroy()`.
   site-id="your-publishable-site-id"
   product-id="your-product-id"
   locale="en"
-  theme="auto">
+  theme="auto"
+  accent-color="#6750a4"
+  font-family="Inter, system-ui, sans-serif">
 </catalog3d-room>
 ```
+
+`accentColor` accepts an opaque three- or six-digit hex color. Catalog3D derives
+its hover, focus, translucent, and readable foreground colors internally.
+`fontFamily` accepts a font-family stack up to 200 characters; use fonts already
+available inside the frame, such as system fonts. Arbitrary CSS and external
+font URLs are not accepted.
 
 ## Events
 

@@ -58,7 +58,11 @@ describe("Catalog3D public embed SDK", () => {
       siteId: "catalog3d-demo",
       productId: "sample__oak-arc-lounge-chair",
       locale: "de",
-      appearance: { theme: "light" },
+      appearance: {
+        accentColor: " #639 ",
+        fontFamily: ' "Brand Sans", Arial, sans-serif ',
+        theme: "light",
+      },
     });
     const frame = target.querySelector("iframe")!;
     const postMessage = vi.spyOn(frame.contentWindow!, "postMessage");
@@ -70,7 +74,11 @@ describe("Catalog3D public embed SDK", () => {
         type: "init",
         instanceId: "instance-test",
         configuration: {
-          appearance: { theme: "light" },
+          appearance: {
+            accentColor: "#663399",
+            fontFamily: '"Brand Sans", Arial, sans-serif',
+            theme: "light",
+          },
           locale: "de",
           productId: "sample__oak-arc-lounge-chair",
           siteId: "catalog3d-demo",
@@ -223,6 +231,23 @@ describe("Catalog3D public embed SDK", () => {
     expect(target.querySelector("iframe")).toBeNull();
   });
 
+  it.each([
+    { appearance: { accentColor: "rebeccapurple" } },
+    { appearance: { accentColor: "#663399cc" } },
+    { appearance: { fontFamily: "Inter; background: red" } },
+    { appearance: { fontFamily: "x".repeat(201) } },
+  ])("rejects unsafe appearance configuration", async (appearanceConfig) => {
+    const { mount } = await importSdk();
+    const target = document.querySelector("#room")!;
+    await expect(mount({
+      target,
+      siteId: "catalog3d-demo",
+      productId: "sample__oak-arc-lounge-chair",
+      ...appearanceConfig,
+    })).rejects.toEqual(expect.objectContaining({ code: "INVALID_CONFIG" }));
+    expect(target.querySelector("iframe")).toBeNull();
+  });
+
   it("maps frame failures to stable safe public errors", async () => {
     const { mount } = await importSdk();
     const target = document.querySelector("#room")!;
@@ -277,5 +302,34 @@ describe("Catalog3D public embed SDK", () => {
     expect(element.setItems).toBeUndefined();
     expect(element.loadRoom).toBeUndefined();
     expect(element.openRoomPicker).toBeUndefined();
+  });
+
+  it("maps declarative appearance attributes into immutable initialization", async () => {
+    await importSdk();
+    const element = document.createElement("catalog3d-room");
+    element.setAttribute("site-id", "catalog3d-demo");
+    element.setAttribute("product-id", "sample__oak-arc-lounge-chair");
+    element.setAttribute("theme", "dark");
+    element.setAttribute("accent-color", "#639");
+    element.setAttribute("font-family", '"Brand Sans", Arial, sans-serif');
+    document.body.appendChild(element);
+
+    const frame = element.querySelector("iframe")!;
+    const postMessage = vi.spyOn(frame.contentWindow!, "postMessage");
+    frame.dispatchEvent(new Event("load"));
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        configuration: expect.objectContaining({
+          appearance: {
+            accentColor: "#663399",
+            fontFamily: '"Brand Sans", Arial, sans-serif',
+            theme: "dark",
+          },
+        }),
+      }),
+      "https://catalog3d.ai",
+    );
+
+    element.remove();
   });
 });

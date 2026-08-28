@@ -1,15 +1,18 @@
-import { copyFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { build } from "esbuild";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const outputDirectory = resolve(projectRoot, "dist");
+const packageMetadata = JSON.parse(
+  await readFile(resolve(projectRoot, "package.json"), "utf8"),
+);
 
 await mkdir(outputDirectory, { recursive: true });
 await build({
   banner: {
-    js: "/*! Catalog3D Embed v1.1.0 | https://catalog3d.ai */",
+    js: `/*! Catalog3D Embed v${packageMetadata.version} | https://catalog3d.ai */`,
   },
   bundle: true,
   entryPoints: [resolve(projectRoot, "src/index.ts")],
