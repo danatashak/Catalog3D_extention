@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Minimal Catalog3D integration</title>
+    <style>
+      body { margin: 0; font: 16px/1.5 system-ui, sans-serif; }
+      main { width: min(920px, calc(100% - 32px)); margin: 32px auto; }
+      #catalog3d-room { min-height: 420px; height: min(760px, 78vh); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Catalog3D room preview</h1>
+      <div id="catalog3d-room"></div>
+    </main>
+
+    <script src="https://catalog3d.ai/embed/v1/catalog3d.js"></script>
+    <script>
+      Catalog3D.mount({
+        target: "#catalog3d-room",
+        siteId: "catalog3d-demo",
+        productId: "high_end_chair_catalog_20__marlow-windsor-chair",
+        locale: "en",
+        appearance: {
+          theme: "auto",
+          accentColor: "#274d3d",
+          fontFamily: "system-ui, sans-serif",
+        },
+      }).catch((error) => console.error(error.code, error.message));
+    </script>
+  </body>
+</html>

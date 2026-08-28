@@ -42,6 +42,7 @@ describe("Catalog3D public embed SDK", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     document.body.replaceChildren();
@@ -93,6 +94,31 @@ describe("Catalog3D public embed SDK", () => {
     expect(readyListener).toHaveBeenCalledTimes(1);
     handle.destroy();
     expect(target.querySelector("iframe")).toBeNull();
+  });
+
+  it("retries initialization until the frame confirms it is ready", async () => {
+    vi.useFakeTimers();
+    const { mount } = await importSdk();
+    const target = document.querySelector("#room")!;
+    const mounted = mount({
+      target,
+      siteId: "catalog3d-demo",
+      productId: "sample__oak-arc-lounge-chair",
+    });
+    const frame = target.querySelector("iframe")!;
+    const postMessage = vi.spyOn(frame.contentWindow!, "postMessage");
+
+    frame.dispatchEvent(new Event("load"));
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(postMessage).toHaveBeenCalledTimes(3);
+
+    frameMessage(frame, "https://catalog3d.ai", "instance-test", "ready");
+    const handle = await mounted;
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(postMessage).toHaveBeenCalledTimes(3);
+    handle.destroy();
+    vi.useRealTimers();
   });
 
   it("passes a normalized text removal intent and resolves on trusted acceptance", async () => {

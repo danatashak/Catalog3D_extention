@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A standalone merchant product page showing the public Catalog3D Embed API."
+    />
+    <title>Marlow Armchair · Catalog3D product-page example</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-site-id="catalog3d-demo"
+    data-product-id="high_end_chair_catalog_20__marlow-windsor-chair"
+  >
+    <div class="page">
+      <div class="announcement">
+        Complimentary delivery on furniture orders over €500
+      </div>
+
+      <header class="retail-header">
+        <a class="wordmark" href="#top" aria-label="Catalog3D example home">
+          Catalog3D
+        </a>
+        <nav class="navigation" aria-label="Primary navigation">
+          <a href="#product">New arrivals</a>
+          <a href="#product">Furniture</a>
+          <a href="#recommendations">Collections</a>
+          <a href="#story">Our makers</a>
+        </nav>
+        <div class="header-actions">
+          <button type="button" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="5.75" stroke="currentColor" stroke-width="1.5" />
+              <path d="m15 15 4.25 4.25" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" />
+            </svg>
+          </button>
+          <button type="button" aria-label="Shopping bag" id="bag-button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5.5 8.25h13l-1 11h-11l-1-11Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" />
+              <path d="M9 9V6.75a3 3 0 0 1 6 0V9" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span id="bag-count">0</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="top" class="main">
+        <div class="breadcrumbs" aria-label="Breadcrumb">
+          <a href="#top">Home</a><span>/</span>
+          <a href="#product">Dining chairs</a><span>/</span>
+          <span aria-current="page">Marlow armchair</span>
+        </div>
+
+        <section id="product" class="product-section" aria-labelledby="product-title">
+          <div class="gallery">
+            <div class="media-stage" id="media-stage">
+              <div
+                id="catalog3d-room"
+                class="media-layer catalog3d-target media-layer-active"
+                aria-label="Interactive Catalog3D room preview"
+              ></div>
+
+              <div id="photo-layer" class="media-layer photo-layer" aria-hidden="true">
+                <img id="active-photo" alt="Marlow armchair styled in a home" />
+                <div class="media-badges" aria-hidden="true">
+                  <span>Styled at home</span>
+                </div>
+              </div>
+
+              <div class="media-arrows">
+                <button type="button" id="previous-media" aria-label="Previous media">←</button>
+                <button type="button" id="next-media" aria-label="Next media">→</button>
+              </div>
+              <span class="media-count" id="media-count" aria-live="polite">01 / 04</span>
+              <p class="embed-status" id="embed-status" role="status">Loading Catalog3D…</p>
+            </div>
+
+            <div class="thumbnails" role="tablist" aria-label="Product media">
+              <button
+                type="button"
+                class="thumbnail thumbnail-active"
+                data-media-index="0"
+                aria-label="Open interactive Catalog3D preview"
+                aria-selected="true"
+                role="tab"
+              >
+                <img
+                  src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd.png?v=20260712-phase1"
+                  alt=""
+                />
+                <span class="thumbnail-widget-badge">◇ 3D + room</span>
+              </button>
+              <button type="button" class="thumbnail" data-media-index="1" aria-label="Open lifestyle image 1" aria-selected="false" role="tab">
+                <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-01.webp?v=20260712-phase1" alt="" />
+              </button>
+              <button type="button" class="thumbnail" data-media-index="2" aria-label="Open lifestyle image 2" aria-selected="false" role="tab">
+                <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-02.webp?v=20260712-phase1" alt="" />
+              </button>
+              <button type="button" class="thumbnail" data-media-index="3" aria-label="Open lifestyle image 3" aria-selected="false" role="tab">
+                <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-03.webp?v=20260712-phase1" alt="" />
+              </button>
+            </div>
+          </div>
+
+          <aside class="product-info">
+            <p class="eyebrow">The Marlow collection</p>
+            <h1 id="product-title">Marlow dining armchair</h1>
+            <div class="rating-row">
+              <span aria-label="4.9 out of 5 stars">★★★★★</span>
+              <a href="#reviews">4.9 · 38 reviews</a>
+            </div>
+            <p class="price">€689</p>
+            <p class="description">
+              A sculptural solid-wood armchair with a gently curved back and
+              generous cushioning, designed to stay comfortable long after dinner ends.
+            </p>
+
+            <div class="made-to-order"><span></span>Made to order · Ready in 4–6 weeks</div>
+
+            <fieldset class="option-group" data-option-group="material">
+              <legend><span>Upholstery</span><strong id="material-label">Oat bouclé</strong></legend>
+              <div class="option-cards">
+                <button type="button" class="option-active" data-option="m1" aria-pressed="true">
+                  <span class="option-swatch m1"></span>
+                  <span><strong>Oat bouclé</strong><small>Textured, warm neutral weave</small></span>
+                </button>
+                <button type="button" data-option="m2" aria-pressed="false">
+                  <span class="option-swatch m2"></span>
+                  <span><strong>Cognac leather</strong><small>Soft full-grain aniline leather</small></span>
+                </button>
+              </div>
+            </fieldset>
+
+            <fieldset class="option-group" data-option-group="wood">
+              <legend><span>Frame</span><strong id="wood-label">Dark walnut</strong></legend>
+              <div class="option-cards">
+                <button type="button" class="option-active" data-option="wd" aria-pressed="true">
+                  <span class="option-swatch wd"></span>
+                  <span><strong>Dark walnut</strong><small>Deep, hand-rubbed finish</small></span>
+                </button>
+                <button type="button" data-option="wl" aria-pressed="false">
+                  <span class="option-swatch wl"></span>
+                  <span><strong>Natural oak</strong><small>Clear, natural matte finish</small></span>
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="purchase-row">
+              <div class="quantity" aria-label="Quantity selector">
+                <button type="button" id="decrease-quantity" aria-label="Decrease quantity">−</button>
+                <span id="quantity" aria-live="polite">1</span>
+                <button type="button" id="increase-quantity" aria-label="Increase quantity">+</button>
+              </div>
+              <button type="button" class="add-to-bag" id="add-to-bag">
+                <span>Add to bag</span><small id="bag-price">€689</small>
+              </button>
+            </div>
+
+            <button type="button" class="room-cta" id="room-cta">
+              <span aria-hidden="true">◇</span> See this product in your room
+            </button>
+
+            <div class="reassurance">
+              <span>✓ Free furniture delivery</span>
+              <span>↺ 30-day returns</span>
+              <span>♢ FSC-certified wood</span>
+            </div>
+
+            <div class="details">
+              <details open>
+                <summary>Design details</summary>
+                <p>Solid timber frame, hand-finished joinery, high-resilience foam, and a sprung seat base.</p>
+              </details>
+              <details>
+                <summary>Dimensions</summary>
+                <p>Width 58 cm · Depth 61 cm · Height 82 cm · Seat height 47 cm.</p>
+              </details>
+              <details>
+                <summary>Delivery &amp; care</summary>
+                <p>Delivered assembled. Vacuum upholstery gently and wipe timber with a dry cloth.</p>
+              </details>
+            </div>
+          </aside>
+        </section>
+
+        <section id="recommendations" class="recommendations" aria-labelledby="recommendation-title">
+          <div>
+            <p class="eyebrow">Complete the room</p>
+            <h2 id="recommendation-title">Pieces selected for Marlow</h2>
+          </div>
+          <div class="recommendation-grid">
+            <a href="#product">
+              <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-01.webp?v=20260712-phase1" alt="Marlow chair in a warm dining room" />
+              <span><strong>Oak arc table</strong><small>View product →</small></span>
+            </a>
+            <a href="#product">
+              <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-02.webp?v=20260712-phase1" alt="Marlow chair with a side table" />
+              <span><strong>Linen shade lamp</strong><small>View product →</small></span>
+            </a>
+            <a href="#product">
+              <img src="https://storage.googleapis.com/northern-sight-459014-u8.firebasestorage.app/catalog-website/static/v14/demo-configurator/3d-chair/product-images/m1wd-lifestyle-03.webp?v=20260712-phase1" alt="Marlow chair in a styled interior" />
+              <span><strong>Handwoven wool rug</strong><small>View product →</small></span>
+            </a>
+          </div>
+        </section>
+
+        <section id="story" class="story-strip">
+          <p>Made slowly in Northern Europe</p>
+          <span>Solid timber · Hand-finished · Designed for everyday life</span>
+        </section>
+
+        <section id="reviews" class="reviews" aria-label="Customer review highlight">
+          <span>★★★★★</span>
+          <blockquote>“The rare dining chair that looks refined and is still comfortable through a long evening.”</blockquote>
+          <p>— Elise M., verified owner</p>
+        </section>
+      </main>
+
+      <aside class="assistant-dock" id="assistant" aria-labelledby="assistant-title">
+        <div class="chat-card liquid-glass">
+          <div class="chat-header">
+            <div class="avatar">A</div>
+            <div><strong id="assistant-title">Aria</strong><span><i></i> Product &amp; room assistant</span></div>
+            <button type="button" class="header-minimize" id="minimize-assistant" aria-label="Minimize assistant">⌄ <span>Minimize</span></button>
+            <button type="button" class="close-assistant" id="close-assistant" aria-label="Close assistant">×</button>
+          </div>
+          <div class="assistant-progress" aria-label="Room preview progress">
+            <span class="progress-complete">1 <i>Chair selected</i></span>
+            <span class="progress-active" id="room-progress">2 <i>Add your room</i></span>
+            <span>3 <i>Place &amp; compare</i></span>
+          </div>
+          <div class="chat-body" id="chat-body" aria-live="polite">
+            <div class="message-row assistant-message">
+              <div class="message-avatar">A</div>
+              <p>Upload a room inside Catalog3D. Once it is ready, describe an object you want removed and I’ll pass that intent to the room experience.</p>
+            </div>
+          </div>
+          <div class="suggestions" aria-label="Suggested removal requests">
+            <button type="button" data-removal="remove the floor lamp beside the sofa">Remove a floor lamp</button>
+            <button type="button" data-removal="remove the chair by the window">Remove a chair</button>
+          </div>
+          <form class="chat-composer" id="removal-form">
+            <label class="sr-only" for="removal-description">Describe an object to remove</label>
+            <input id="removal-description" maxlength="500" placeholder="Describe an object to remove…" autocomplete="off" />
+            <button type="submit" aria-label="Send removal request">→</button>
+          </form>
+        </div>
+      </aside>
+
+      <button type="button" class="assistant-minimized liquid-glass" id="assistant-minimized" hidden>
+        <span class="avatar">A</span><span><strong>Aria</strong><small>Open room assistant</small></span><b>Open ↑</b>
+      </button>
+      <button type="button" class="assistant-reopen liquid-glass" id="assistant-reopen" hidden>
+        <span class="avatar">A</span><span><strong>Open room assistant</strong><small>Ask about your Catalog3D room</small></span>
+      </button>
+
+      <footer class="footer">
+        <a class="wordmark" href="#top">Catalog3D</a>
+        <p>Considered furniture for rooms that are lived in.</p>
+        <span>Open-source product-page integration example</span>
+      </footer>
+    </div>
+
+    <script
+      src="../../dist/catalog3d.js"
+      data-catalog3d-host="https://catalog3d.ai"
+    ></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 const PROTOCOL = "catalog3d:embed:v1" as const;
 const DEFAULT_HOST = "https://catalog3d.ai";
+const INIT_RETRY_MS = 500;
 const READY_TIMEOUT_MS = 20_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 const REMOVAL_DESCRIPTION_MAX_LENGTH = 500;
@@ -306,6 +307,7 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
   const wrapper = document.createElement("div");
   let destroyed = false;
   let ready = false;
+  let initInterval = 0;
   let readyTimeout = 0;
   let requestSequence = 0;
   let rejectReady: (error: Catalog3DError) => void = () => undefined;
@@ -329,12 +331,10 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
   );
   frame.style.cssText =
     "display:block;border:0;inline-size:100%;block-size:100%;min-block-size:420px;";
-  wrapper.appendChild(frame);
-  target.replaceChildren(wrapper);
-
   const cleanup = (removeDom: boolean) => {
     if (!destroyed) {
       destroyed = true;
+      window.clearInterval(initInterval);
       window.clearTimeout(readyTimeout);
       window.removeEventListener("message", handleMessage);
       frame.removeEventListener("load", handleLoad);
@@ -417,7 +417,7 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
     cleanup(removeDom);
   };
 
-  function handleLoad() {
+  function sendInitialization() {
     if (destroyed || !frame.contentWindow) return;
     frame.contentWindow.postMessage(
       {
@@ -428,6 +428,12 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
       },
       sdkHost,
     );
+  }
+
+  function handleLoad() {
+    window.clearInterval(initInterval);
+    sendInitialization();
+    initInterval = window.setInterval(sendInitialization, INIT_RETRY_MS);
   }
 
   function handleFrameError() {
@@ -454,6 +460,7 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
     if (message.type === "ready") {
       if (ready) return;
       ready = true;
+      window.clearInterval(initInterval);
       window.clearTimeout(readyTimeout);
       dispatchPublicEvent(target!, "catalog3d:ready");
       resolveReady(handle);
@@ -501,6 +508,8 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
       );
     }, READY_TIMEOUT_MS);
   });
+  wrapper.appendChild(frame);
+  target.replaceChildren(wrapper);
   return readyPromise;
 }
 
