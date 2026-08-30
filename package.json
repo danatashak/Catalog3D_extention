@@ -15,10 +15,10 @@
   "homepage": "https://catalog3d.ai",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moat335a/Catalog3D_extention.git"
+    "url": "git+https://github.com/danatashak/Catalog3D_extention.git"
   },
   "bugs": {
-    "url": "https://github.com/moat335a/Catalog3D_extention/issues"
+    "url": "https://github.com/danatashak/Catalog3D_extention/issues"
   },
   "type": "module",
   "main": "./dist/catalog3d.mjs",
