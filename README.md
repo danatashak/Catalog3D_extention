@@ -2,8 +2,8 @@
 
 The public, zero-runtime-dependency browser loader for embedding Catalog3D in a
 product page. Catalog3D owns room selection, upload, processing, object removal,
-and presentation inside an isolated iframe. The merchant page controls the
-iframe container's placement, dimensions, responsive layout, and bounded visual
+and presentation inside an isolated Catalog3D application. The merchant page controls the
+application's placement, dimensions, responsive layout, and bounded visual
 theme.
 
 ## Five-minute integration
@@ -29,7 +29,7 @@ theme.
 </script>
 ```
 
-The promise resolves when the iframe is ready. Catalog3D owns the upload
+The promise resolves when the Catalog3D application is ready. Catalog3D owns the upload
 interface; the host does not select or load room files.
 
 After `catalog3d:room-ready`, a host chatbot can submit a plain-language removal
