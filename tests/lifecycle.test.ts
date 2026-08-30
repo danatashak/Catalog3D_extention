@@ -166,7 +166,10 @@ describe("public contract enforcement", () => {
     expect(target.querySelector("iframe")).toBeNull();
   });
 
-  it("never echoes an attacker-shaped option name back into the public message", async () => {
+  it.each([
+    "authToken",
+    "<img src=x onerror=alert(1)>",
+  ])("never echoes an unknown option name (%s) into the public message", async (name) => {
     const { mount } = await importSdk();
     const target = document.querySelector("#room")!;
     await expect(
@@ -174,7 +177,7 @@ describe("public contract enforcement", () => {
         target,
         siteId: "catalog3d-demo",
         productId: "sample__oak-arc-lounge-chair",
-        ["<img src=x onerror=alert(1)>"]: true,
+        [name]: true,
       } as never),
     ).rejects.toEqual(
       expect.objectContaining({
@@ -195,16 +198,14 @@ describe("iframe hardening for unknown host pages", () => {
     vi.unstubAllGlobals();
   });
 
-  it("delegates the Permissions Policy features the room experience needs", async () => {
+  it("does not delegate unused device or fullscreen permissions", async () => {
     const { mount } = await importSdk();
     const target = document.querySelector("#room")!;
     const { handle } = await mountReady(mount, target);
     const frame = target.querySelector("iframe")!;
 
-    const allow = frame.getAttribute("allow") || "";
-    ["accelerometer", "camera", "fullscreen", "gyroscope", "magnetometer", "xr-spatial-tracking"]
-      .forEach((feature) => expect(allow).toContain(feature));
-    expect(frame.hasAttribute("allowfullscreen")).toBe(true);
+    expect(frame.hasAttribute("allow")).toBe(false);
+    expect(frame.hasAttribute("allowfullscreen")).toBe(false);
     expect(frame.getAttribute("sandbox")).toBe(
       "allow-downloads allow-forms allow-same-origin allow-scripts",
     );
@@ -308,16 +309,16 @@ describe("declarative element lifecycle", () => {
     await importSdk();
     const element = makeElement();
     document.querySelector("#a")!.appendChild(element);
+    const firstFrame = element.querySelector("iframe");
     element.remove();
     await vi.advanceTimersByTimeAsync(0);
     expect(element.querySelector("iframe")).toBeNull();
 
     document.querySelector("#b")!.appendChild(element);
-    // The superseded attempt still owns the target until it settles, so the
-    // remount lands once its ready timeout has released the registration.
-    await vi.advanceTimersByTimeAsync(20_000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(element.querySelector("iframe")).not.toBeNull();
+    expect(element.querySelector("iframe")).not.toBe(firstFrame);
     element.remove();
     await vi.advanceTimersByTimeAsync(0);
   });

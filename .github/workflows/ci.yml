@@ -15,9 +15,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+      - run: npm run verify
 
       # dist/ is committed because it is the source for the served browser tag.
       # A stale build would ship a loader that does not match its own source.

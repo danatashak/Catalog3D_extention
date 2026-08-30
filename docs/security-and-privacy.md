@@ -42,35 +42,18 @@ room experience: `allow-downloads allow-forms allow-same-origin allow-scripts`.
 The parent cannot style or inspect the private iframe DOM, and the frame session
 endpoint does not grant cross-origin read access.
 
-`allow-same-origin` alongside `allow-scripts` is safe here precisely because the
-frame is cross-origin to the merchant: it restores catalog3d.ai's own origin
-inside the frame without granting any access to the merchant's. That reasoning
-does **not** hold if a merchant self-hosts the loader on their own domain, since
-the frame would then be same-origin to the page and could remove its own sandbox
-attribute. Load the tag from Catalog3D.
+`allow-same-origin` alongside `allow-scripts` is safe here because the iframe
+host remains cross-origin to the merchant. A classic browser tag derives the
+iframe host from its own script URL unless `data-catalog3d-host` explicitly
+overrides it; the npm module defaults to `https://catalog3d.ai`. Do not self-host
+the classic tag without also setting the intended trusted Catalog3D host.
 
 ## Delegated browser permissions
 
-The embedding page is the only party that can grant a cross-origin frame access
-to device features, so the loader delegates the ones the room experience needs,
-each scoped to the frame's own origin:
-
-```text
-accelerometer; camera; fullscreen; gyroscope; magnetometer; xr-spatial-tracking
-```
-
-`camera` supports in-frame room capture; the motion sensors and
-`xr-spatial-tracking` support placement and AR. The browser still prompts the
-shopper before the camera is used, and the merchant page never receives the
-camera stream, the captured frames, or any sensor data.
-
-## Storage partitioning
-
-Browsers partition third-party iframe storage by top-level site. A shopper's
-Catalog3D room session is therefore scoped to the store they are on: it does not
-follow them to another merchant, and it is not shared with catalog3d.ai's
-first-party storage. The loader does not request unpartitioned storage
-access.
+The current loader does not delegate camera, sensor, WebXR, microphone, or
+fullscreen permissions. The room experience currently uses file upload rather
+than direct camera capture. Any future delegated feature requires corresponding
+runtime use, production policy support, tests, and a security review.
 
 ## Object-removal intent
 
@@ -98,8 +81,8 @@ frame-src https://catalog3d.ai
 Apply the site's existing nonce or hash policy to inline integration code, or
 place mount code in a merchant-owned external script.
 
-No `style-src` relaxation is required. The loader styles only the elements it
-creates, through the CSSOM, which CSP does not govern — it injects no `<style>`
-element and no `style` attribute markup. Those inline declarations are marked
-`!important` so a store-wide CSS reset cannot collapse the embed's box; size and
-placement stay under merchant control through the target element.
+The loader injects no `<style>` element. It applies inline declarations only to
+the wrapper and iframe it creates; those declarations are marked `!important`
+so a store-wide reset cannot collapse the embed's box. Size and placement stay
+under merchant control through the target element. Merchants with a restrictive
+`style-src-attr` policy should include the embed in their own CSP verification.

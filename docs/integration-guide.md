@@ -46,9 +46,10 @@ a 420-pixel minimum height.
 
 ## 3. Load and mount
 
-During local development, point the tag at a registered loopback origin with
-`data-catalog3d-host`; in production, omit it and let the loader trust the origin
-it was served from. See
+`data-catalog3d-host` is a development override for the Catalog3D iframe host;
+it does not register the merchant page's origin. The standalone example uses a
+local loader with `data-catalog3d-host="https://catalog3d.ai"`. When the loader
+and iframe are both served by Catalog3D in production, omit the override. See
 [Security and privacy](security-and-privacy.md#where-the-loaders-trust-anchor-comes-from).
 
 ```html

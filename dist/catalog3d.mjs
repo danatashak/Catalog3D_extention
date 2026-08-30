@@ -12,7 +12,6 @@ var SITE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,63}$/u;
 var PRODUCT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$/u;
 var ACCENT_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/iu;
 var FONT_FAMILY_PATTERN = /^[\p{L}\p{N} "',._-]+$/u;
-var OPTION_NAME_PATTERN = /^[A-Za-z0-9_$]{1,40}$/u;
 var LOCALES = /* @__PURE__ */ new Set(["en", "de", "fr"]);
 var THEMES = /* @__PURE__ */ new Set(["auto", "dark", "light"]);
 var MOUNT_OPTION_NAMES = /* @__PURE__ */ new Set([
@@ -40,14 +39,6 @@ var BOX_STYLE = [
 ].join(";");
 var WRAPPER_STYLE = `${BOX_STYLE};position:relative !important;overflow:hidden !important;`;
 var FRAME_STYLE = `${BOX_STYLE};position:static !important;background:transparent !important;`;
-var FRAME_PERMISSIONS = [
-  "accelerometer",
-  "camera",
-  "fullscreen",
-  "gyroscope",
-  "magnetometer",
-  "xr-spatial-tracking"
-].join("; ");
 var PUBLIC_ERROR_CODES = /* @__PURE__ */ new Set([
   "FRAME_LOAD_FAILED",
   "BUSY",
@@ -86,10 +77,9 @@ var assertKnownOptions = (value, allowed, label) => {
   }
   const unknown = Object.keys(value).filter((name) => !allowed.has(name));
   if (unknown.length === 0) return;
-  const named = unknown.filter((name) => OPTION_NAME_PATTERN.test(name)).slice(0, 5);
   throw new Catalog3DError(
     "INVALID_CONFIG",
-    named.length > 0 ? `Catalog3D ${label} has unsupported options: ${named.join(", ")}.` : `Catalog3D ${label} has unsupported options.`
+    `Catalog3D ${label} has unsupported options.`
   );
 };
 var normalizeAccentColor = (value) => {
@@ -275,8 +265,6 @@ function mount(options) {
   frame.title = FRAME_TITLES[configuration.locale];
   frame.loading = "eager";
   frame.referrerPolicy = "no-referrer";
-  frame.setAttribute("allow", FRAME_PERMISSIONS);
-  frame.setAttribute("allowfullscreen", "");
   frame.setAttribute(
     "sandbox",
     "allow-downloads allow-forms allow-same-origin allow-scripts"
@@ -289,7 +277,10 @@ function mount(options) {
     });
     pendingRequests.clear();
   };
-  const cleanup = (removeDom) => {
+  const cleanup = (removeDom, readyError = new Catalog3DError(
+    "INTERNAL_ERROR",
+    "Catalog3D closed before it became ready."
+  )) => {
     if (!destroyed) {
       destroyed = true;
       window.clearInterval(initInterval);
@@ -298,6 +289,7 @@ function mount(options) {
       frame.removeEventListener("load", handleLoad);
       frame.removeEventListener("error", handleFrameError);
       mountedTargets.delete(target);
+      if (!ready) rejectReady(readyError);
       rejectPendingRequests(
         new Catalog3DError(
           "INTERNAL_ERROR",
@@ -369,8 +361,7 @@ function mount(options) {
       code: error.code,
       message: error.message
     });
-    if (!ready) rejectReady(error);
-    cleanup(removeDom);
+    cleanup(removeDom, error);
   };
   function sendInitialization() {
     if (destroyed || !frame.contentWindow) return;
@@ -505,7 +496,8 @@ var defineRoomElement = () => {
         this.#teardown = 0;
         this.#generation += 1;
         this.#pending = false;
-        this.#handle?.destroy();
+        const activeHandle = this.#handle || mountedTargets.get(this);
+        activeHandle?.destroy();
         this.#handle = null;
         this.replaceChildren();
       }, 0);

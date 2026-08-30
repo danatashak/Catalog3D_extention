@@ -18,10 +18,9 @@ The shopper's room is ready for room-dependent intents such as object removal.
 The event intentionally contains no room image, file, scene, job, geometry, or
 artifact payload (`detail` is `null`).
 
-It may fire more than once — a shopper can prepare another room in the same
-session. Treat the most recent occurrence as authoritative rather than latching a
-flag permanently: an iframe reload resets room state, after which room-dependent
-intents fail with `ROOM_NOT_READY` until a room is ready again.
+It may fire more than once, so handlers should be idempotent. A room-dependent
+request can still reject with `ROOM_NOT_READY` if private room state changes
+after an earlier event; treat the command result as authoritative.
 
 ### `catalog3d:error`
 

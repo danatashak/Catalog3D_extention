@@ -10,23 +10,10 @@ https://catalog3d.ai/embed/v1/catalog3d.js
 Backward-compatible fixes and additions may ship within v1. Breaking changes
 require a new major URL and migration guide.
 
-## Pinning and subresource integrity
-
-The `v1` URL is mutable by design, so it cannot carry an `integrity` attribute.
-Stores whose supply-chain policy requires SRI should pin an exact release
-instead, and update it deliberately:
-
-```html
-<script src="https://catalog3d.ai/embed/1.3.0/catalog3d.js"
-        integrity="sha384-…"
-        crossorigin="anonymous"></script>
-```
-
-A pinned build never changes, so it never picks up fixes on its own. Rolling
-`v1` is the right default for most stores; pinning is the right default for
-stores that review every third-party byte.
-
-Bundler-based integrations pin through the lockfile instead:
+The `v1` URL is mutable by design and currently has no immutable per-release
+counterpart, so it cannot be combined with a stable Subresource Integrity hash.
+Stores that require a pinned dependency should use the npm package and commit
+their lockfile:
 
 ```sh
 npm install @catalog3d/embed

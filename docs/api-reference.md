@@ -54,8 +54,9 @@ Only one active mount may own a target. Product and appearance configuration
 cannot be mutated after mounting.
 
 **Unknown options are rejected**, not ignored. `{ local: "de" }` or
-`{ appearance: { accentcolor: "#639" } }` fails with `INVALID_CONFIG` naming the
-unsupported key, rather than mounting silently with the wrong configuration.
+`{ appearance: { accentcolor: "#639" } }` fails with `INVALID_CONFIG` rather
+than mounting silently with the wrong configuration. The public error does not
+echo unknown names or values.
 
 `mount()` rejects with `INVALID_CONFIG` when called without a browser
 environment, so importing the loader into a server-rendered page is safe.

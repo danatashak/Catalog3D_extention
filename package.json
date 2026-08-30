@@ -39,6 +39,7 @@
     "docs",
     "CHANGELOG.md",
     "LICENSE",
+    "PUBLISHING.md",
     "README.md"
   ],
   "publishConfig": {
@@ -46,10 +47,11 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "check:package": "node scripts/check-package.mjs",
     "example": "node scripts/serve-example.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm test && npm run build",
+    "verify": "npm run typecheck && npm test && npm run build && npm run check:package",
     "prepublishOnly": "npm run verify"
   },
   "devDependencies": {

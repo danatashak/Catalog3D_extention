@@ -112,7 +112,7 @@ identity.
 
 ```sh
 npm install
-npm run verify   # typecheck, test, build
+npm run verify   # typecheck, tests, build, package-consumer checks
 ```
 
 `dist/` is committed because it is the source for the served tag. Rebuild and

@@ -9,7 +9,6 @@ const SITE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,63}$/u;
 const PRODUCT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$/u;
 const ACCENT_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/iu;
 const FONT_FAMILY_PATTERN = /^[\p{L}\p{N} "',._-]+$/u;
-const OPTION_NAME_PATTERN = /^[A-Za-z0-9_$]{1,40}$/u;
 const LOCALES = new Set(["en", "de", "fr"] as const);
 const THEMES = new Set(["auto", "dark", "light"] as const);
 const MOUNT_OPTION_NAMES = new Set([
@@ -42,21 +41,6 @@ const BOX_STYLE = [
 ].join(";");
 const WRAPPER_STYLE = `${BOX_STYLE};position:relative !important;overflow:hidden !important;`;
 const FRAME_STYLE = `${BOX_STYLE};position:static !important;background:transparent !important;`;
-
-// Delegated Permissions Policy features. A cross-origin frame is denied these by
-// default, and only the embedding page can grant them, so the loader delegates
-// exactly what the room experience needs: camera for in-frame room capture,
-// device sensors and WebXR for placement, and fullscreen for the expanded view.
-// Each is delegated to the frame's own origin only, and the browser still
-// prompts the shopper before the camera is used.
-const FRAME_PERMISSIONS = [
-  "accelerometer",
-  "camera",
-  "fullscreen",
-  "gyroscope",
-  "magnetometer",
-  "xr-spatial-tracking",
-].join("; ");
 
 export type Catalog3DLocale = "en" | "de" | "fr";
 export type Catalog3DTheme = "auto" | "dark" | "light";
@@ -178,12 +162,9 @@ const assertKnownOptions = (
   }
   const unknown = Object.keys(value).filter((name) => !allowed.has(name));
   if (unknown.length === 0) return;
-  const named = unknown.filter((name) => OPTION_NAME_PATTERN.test(name)).slice(0, 5);
   throw new Catalog3DError(
     "INVALID_CONFIG",
-    named.length > 0
-      ? `Catalog3D ${label} has unsupported options: ${named.join(", ")}.`
-      : `Catalog3D ${label} has unsupported options.`,
+    `Catalog3D ${label} has unsupported options.`,
   );
 };
 
@@ -427,8 +408,6 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
   // would time out before the shopper ever scrolled to it.
   frame.loading = "eager";
   frame.referrerPolicy = "no-referrer";
-  frame.setAttribute("allow", FRAME_PERMISSIONS);
-  frame.setAttribute("allowfullscreen", "");
   frame.setAttribute(
     "sandbox",
     "allow-downloads allow-forms allow-same-origin allow-scripts",
@@ -443,7 +422,13 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
     pendingRequests.clear();
   };
 
-  const cleanup = (removeDom: boolean) => {
+  const cleanup = (
+    removeDom: boolean,
+    readyError = new Catalog3DError(
+      "INTERNAL_ERROR",
+      "Catalog3D closed before it became ready.",
+    ),
+  ) => {
     if (!destroyed) {
       destroyed = true;
       window.clearInterval(initInterval);
@@ -452,6 +437,7 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
       frame.removeEventListener("load", handleLoad);
       frame.removeEventListener("error", handleFrameError);
       mountedTargets.delete(target!);
+      if (!ready) rejectReady(readyError);
       rejectPendingRequests(
         new Catalog3DError(
           "INTERNAL_ERROR",
@@ -531,8 +517,7 @@ export function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle> 
       code: error.code,
       message: error.message,
     });
-    if (!ready) rejectReady(error);
-    cleanup(removeDom);
+    cleanup(removeDom, error);
   };
 
   function sendInitialization() {
@@ -709,7 +694,12 @@ const defineRoomElement = () => {
         this.#teardown = 0;
         this.#generation += 1;
         this.#pending = false;
-        this.#handle?.destroy();
+        // mount() registers its handle synchronously, before the ready promise
+        // settles. Use that private registration to cancel a pending handshake
+        // immediately instead of making a later reconnect wait for the ready
+        // timeout to release the target.
+        const activeHandle = this.#handle || mountedTargets.get(this);
+        activeHandle?.destroy();
         this.#handle = null;
         // Drop the wrapper left behind by a mount that had not resolved yet.
         this.replaceChildren();
