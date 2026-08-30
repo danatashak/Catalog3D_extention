@@ -1,4 +1,4 @@
-# Catalog3D Embed
+# Catalog3D Extention
 
 The public, zero-runtime-dependency browser loader for embedding Catalog3D in a
 product page. Catalog3D owns room selection, upload, processing, object removal,
