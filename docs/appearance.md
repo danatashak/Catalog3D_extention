@@ -27,7 +27,10 @@ Use ordinary CSS on the target or its parent:
 ```
 
 Catalog3D fills the target's width and height and enforces a 420-pixel minimum
-height. On a viewport narrower than 420 pixels, use a fixed 420-pixel height
+height. The elements the loader creates inside the target declare their geometry
+`!important`, so a store-wide reset such as `iframe { width: auto }` or
+`* { margin: 8px }` cannot collapse the embed. Size and place the target itself;
+do not try to restyle the loader's own wrapper or iframe. On a viewport narrower than 420 pixels, use a fixed 420-pixel height
 instead of combining the minimum height with a square aspect ratio; otherwise
 the aspect ratio can force the target wider than its column. The merchant can
 place the target in a grid, carousel, dialog, product gallery, or full-width

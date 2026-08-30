@@ -19,9 +19,13 @@ port.
 
 ```html
 <section class="product-media">
+  <img class="product-poster" src="/media/chair.webp" alt="Marlow armchair" />
   <div id="catalog3d-room"></div>
 </section>
 ```
+
+Mounting replaces the target's children, so keep any poster image or
+`<noscript>` fallback in a sibling element rather than inside the target.
 
 ```css
 .product-media {
@@ -41,6 +45,11 @@ The merchant controls placement and size. Catalog3D fills the target and applies
 a 420-pixel minimum height.
 
 ## 3. Load and mount
+
+During local development, point the tag at a registered loopback origin with
+`data-catalog3d-host`; in production, omit it and let the loader trust the origin
+it was served from. See
+[Security and privacy](security-and-privacy.md#where-the-loaders-trust-anchor-comes-from).
 
 ```html
 <script src="https://catalog3d.ai/embed/v1/catalog3d.js"></script>

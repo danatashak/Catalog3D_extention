@@ -3,6 +3,18 @@
 Catalog3D is framework-independent. Framework integrations should wrap the same
 immutable mount lifecycle instead of creating another API.
 
+Bundler-based apps can install the package and import `mount` directly instead of
+loading the browser tag:
+
+```sh
+npm install @catalog3d/embed
+```
+
+The examples below use the browser tag, which keeps the loader out of the
+application bundle. Either route is supported; the API is identical. Importing
+the package during server rendering is safe — it registers nothing without a
+document, and `mount()` rejects with `INVALID_CONFIG` rather than throwing.
+
 ## React component
 
 ```tsx

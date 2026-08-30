@@ -7,13 +7,21 @@ Catalog3D dispatches DOM `CustomEvent` objects on the mount target.
 ### `catalog3d:ready`
 
 The iframe and private experience are ready. `Catalog3D.mount()` resolves at
-the same lifecycle point. The event has no detail payload.
+the same lifecycle point. The event has no detail payload (`detail` is `null`).
+
+It fires once per mount. If the iframe reloads afterwards the loader
+re-initializes it silently; the event does not fire again.
 
 ### `catalog3d:room-ready`
 
 The shopper's room is ready for room-dependent intents such as object removal.
 The event intentionally contains no room image, file, scene, job, geometry, or
-artifact payload.
+artifact payload (`detail` is `null`).
+
+It may fire more than once — a shopper can prepare another room in the same
+session. Treat the most recent occurrence as authoritative rather than latching a
+flag permanently: an iframe reload resets room state, after which room-dependent
+intents fail with `ROOM_NOT_READY` until a room is ready again.
 
 ### `catalog3d:error`
 
@@ -28,8 +36,12 @@ The error event is used for both lifecycle failures and rejected commands.
 
 ## Stable error codes
 
-- `BUSY`: another incompatible request is active.
-- `FRAME_LOAD_FAILED`: the Catalog3D iframe could not load.
+- `BUSY`: another incompatible request is active. The loader raises this itself
+  when `requestRemoval()` is called while one is already in flight.
+- `FRAME_LOAD_FAILED`: the Catalog3D iframe could not load. Browsers fire a
+  `load` event rather than an `error` event for HTTP 4xx/5xx responses and for
+  `X-Frame-Options` refusals, so most real load failures surface as `TIMEOUT`
+  instead. Handle both.
 - `INTERNAL_ERROR`: Catalog3D could not complete the operation safely.
 - `INVALID_CONFIG`: public mount configuration failed validation.
 - `INVALID_REQUEST`: a command payload failed validation.

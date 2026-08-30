@@ -14,6 +14,15 @@ const mimeTypes = new Map([
   [".map", "application/json; charset=utf-8"],
 ]);
 
+// Only the two directories the example actually needs. The previous version
+// served the whole project root, which exposed node_modules and package.json to
+// anything that could reach the loopback port.
+const servedRoots = ["dist", "examples"].map((name) => resolve(projectRoot, name));
+const isServable = (filePath) =>
+  servedRoots.some(
+    (root) => filePath === root || filePath.startsWith(`${root}${sep}`),
+  );
+
 const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${host}:${port}`);
@@ -21,8 +30,12 @@ const server = createServer(async (request, response) => {
     const requestedPath = pathname.endsWith("/") ? `${pathname}index.html` : pathname;
     const filePath = resolve(projectRoot, `.${requestedPath}`);
 
-    if (filePath !== projectRoot && !filePath.startsWith(`${projectRoot}${sep}`)) {
-      response.writeHead(403).end("Forbidden");
+    if (!isServable(filePath)) {
+      response.writeHead(403, {
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+      });
+      response.end("Forbidden");
       return;
     }
 

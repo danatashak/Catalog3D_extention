@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      # dist/ is committed because it is the source for the served browser tag.
+      # A stale build would ship a loader that does not match its own source.
+      - name: Fail if the committed build is stale
+        run: git diff --exit-code -- dist
+
+      - name: Check the published package contents
+        run: npm pack --dry-run

@@ -1,10 +1,16 @@
 export type Catalog3DLocale = "en" | "de" | "fr";
 export type Catalog3DTheme = "auto" | "dark" | "light";
 
+/**
+ * Unknown keys are rejected with `INVALID_CONFIG`. Pass exactly these options.
+ */
 export type Catalog3DMountOptions = {
   target: Element | string;
+  /** Publishable merchant registration id: 3-64 chars, `[a-z0-9][a-z0-9_-]*`. */
   siteId: string;
+  /** Authorized published product id: 1-192 chars, `[A-Za-z0-9][A-Za-z0-9._:-]*`. */
   productId: string;
+  /** Variant id in the same product family; same format as `productId`. */
   variantId?: string;
   locale?: Catalog3DLocale;
   appearance?: {
@@ -18,6 +24,7 @@ export type Catalog3DMountOptions = {
 
 export type Catalog3DHandle = {
   destroy(): void;
+  /** One removal may be in flight at a time; a second call rejects with `BUSY`. */
   requestRemoval(request: Catalog3DRemovalRequest): Promise<void>;
 };
 
@@ -43,7 +50,7 @@ export declare class Catalog3DError extends Error {
   readonly code: Catalog3DErrorCode;
 }
 
-export declare const version = "1.2.0";
+export declare const version = "1.3.0";
 export declare function mount(
   options: Catalog3DMountOptions,
 ): Promise<Catalog3DHandle>;
@@ -54,8 +61,9 @@ declare global {
       code: Catalog3DErrorCode;
       message: string;
     }>;
-    "catalog3d:ready": CustomEvent<undefined>;
-    "catalog3d:room-ready": CustomEvent<undefined>;
+    /** Lifecycle events carry no payload; `detail` is `null`. */
+    "catalog3d:ready": CustomEvent<null>;
+    "catalog3d:room-ready": CustomEvent<null>;
   }
 
   interface HTMLElementTagNameMap {
@@ -63,7 +71,8 @@ declare global {
   }
 
   interface Window {
-    Catalog3D: {
+    /** Present only after the browser tag has executed. */
+    Catalog3D?: {
       Catalog3DError: typeof Catalog3DError;
       mount: typeof mount;
       version: typeof version;
