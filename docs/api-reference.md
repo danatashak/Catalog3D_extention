@@ -19,9 +19,8 @@ The loader's semantic version string. The current version is `1.3.0`.
 function mount(options: Catalog3DMountOptions): Promise<Catalog3DHandle>;
 ```
 
-Mounts one Catalog3D iframe in the target. The promise resolves after Catalog3D
-reports ready and rejects with `Catalog3DError` on validation, authorization,
-frame loading, or timeout failure.
+Mounts Catalog3D in the target. The promise resolves when the experience is
+ready and rejects with `Catalog3DError` if mounting fails.
 
 ```ts
 type Catalog3DMountOptions = {
@@ -51,12 +50,11 @@ type Catalog3DMountOptions = {
 - `appearance` is immutable and bounded; see [Appearance](appearance.md).
 
 Only one active mount may own a target. Product and appearance configuration
-cannot be mutated after mounting.
+are fixed for the lifetime of the mount.
 
 **Unknown options are rejected**, not ignored. `{ local: "de" }` or
 `{ appearance: { accentcolor: "#639" } }` fails with `INVALID_CONFIG` rather
-than mounting silently with the wrong configuration. The public error does not
-echo unknown names or values.
+than mounting with the wrong configuration.
 
 `mount()` rejects with `INVALID_CONFIG` when called without a browser
 environment, so importing the loader into a server-rendered page is safe.
@@ -77,13 +75,12 @@ intent requests. Calling it more than once is safe.
 
 ### `requestRemoval({ description })`
 
-Submits a plain-language object-removal intent after `catalog3d:room-ready`.
+Submits a plain-language object-removal request after `catalog3d:room-ready`.
 Descriptions are trimmed and must contain 1-500 characters. The promise resolves
-when the private Catalog3D experience accepts the request.
+when Catalog3D accepts the request.
 
 Only one removal may be in flight at a time. A second call while one is pending
-rejects immediately with `BUSY`. If the iframe reloads under a pending intent,
-that intent rejects with `INTERNAL_ERROR` rather than waiting for its timeout.
+rejects immediately with `BUSY`.
 
 ## `Catalog3DError`
 
@@ -117,10 +114,3 @@ Child content is treated as a placeholder and is replaced when the embed mounts,
 so `<catalog3d-room><p>Loading your room…</p></catalog3d-room>` works. Moving the
 element in the DOM — a carousel, a tab panel, a framework reorder — keeps the
 mount; removing it destroys the mount.
-
-## Deliberately absent APIs
-
-Public v1 has no `setProduct`, `setItems`, `addItem`, `removeItem`, `loadRoom`,
-`openRoomPicker`, `setMode`, generic `update`, direct iframe DOM access, or job
-API. These are not accidental omissions: Catalog3D owns room workflow and
-private runtime evolution.

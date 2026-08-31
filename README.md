@@ -1,10 +1,7 @@
 # Catalog3D Extension
 
-The public, zero-runtime-dependency browser loader for embedding Catalog3D in a
-product page. Catalog3D owns room selection, upload, processing, object removal,
-and presentation inside an isolated Catalog3D application. The merchant page
-controls the application's placement, dimensions, responsive layout, and
-bounded visual theme.
+A small browser loader for adding Catalog3D to a product page. The merchant page
+controls placement, dimensions, responsive layout, and appearance.
 
 ## Five-minute integration
 
@@ -29,10 +26,8 @@ bounded visual theme.
 </script>
 ```
 
-The promise resolves when the Catalog3D application is ready. Catalog3D owns the
-upload interface; the host does not select or load room files. Mounting replaces
-the target's children, so keep any poster or fallback markup in a sibling
-element.
+The promise resolves when Catalog3D is ready. Mounting replaces the target's
+children, so keep any poster or fallback markup in a sibling element.
 
 Bundler-based apps can skip the tag and import the package instead:
 
@@ -66,8 +61,7 @@ and visual debugging surface. It demonstrates:
 - appearance tokens;
 - ready, room-ready, and error events;
 - a host-owned assistant using `requestRemoval({ description })`;
-- cleanup with `destroy()`; and
-- ordinary merchant recommendation links without private scene-item APIs.
+- cleanup with `destroy()`.
 
 Run it locally:
 
@@ -88,7 +82,6 @@ Then open <http://127.0.0.1:4174/examples/product-page/>.
 - [React and Next.js](docs/frameworks.md)
 - [Security and privacy](docs/security-and-privacy.md)
 - [Versioning and migration](docs/versioning.md)
-- [Design decisions](docs/design-decisions.md)
 
 ## Declarative alternative
 
@@ -116,13 +109,7 @@ npm run verify   # typecheck, tests, build, package-consumer checks
 ```
 
 `dist/` is committed because it is the source for the served tag. Rebuild and
-commit it with any source change; a test and CI both fail on a stale build.
-[Design decisions](docs/design-decisions.md) records why the loader is built the
-way it is, and [PUBLISHING.md](PUBLISHING.md) is the release checklist.
-
-The public package is intentionally small. It does not expose backend URLs,
-tokens, model URLs, room files or jobs, renderer controls, scene collections,
-room-picker commands, or mode setters.
+commit it with any source change.
 
 ## License
 

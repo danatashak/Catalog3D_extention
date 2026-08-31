@@ -1,15 +1,12 @@
 # Integration guide
 
-Catalog3D is embedded as a Catalog3D-owned iframe. A merchant supplies public
-site and product identity, chooses bounded appearance tokens, and controls the
-outer container with normal page CSS. Room selection, upload, processing, and
-the room interface remain inside Catalog3D.
+Add Catalog3D to a product page with a publishable site id, a product id, and an
+optional appearance configuration. Use normal page CSS to size and place it.
 
 ## 1. Register the merchant site
 
-Ask Catalog3D for a publishable `siteId`. Registration connects that id to the
-merchant's allowed HTTPS origins and allowed published products. Never place an
-API secret in browser code.
+Ask Catalog3D for a publishable `siteId` registered for the merchant's HTTPS
+origins and products. Never place an API secret in browser code.
 
 For local development, use an explicitly registered loopback origin such as
 `http://127.0.0.1:4174`. Origin matching includes the scheme and non-default
@@ -45,12 +42,6 @@ The merchant controls placement and size. Catalog3D fills the target and applies
 a 420-pixel minimum height.
 
 ## 3. Load and mount
-
-`data-catalog3d-host` is a development override for the Catalog3D iframe host;
-it does not register the merchant page's origin. The standalone example uses a
-local loader with `data-catalog3d-host="https://catalog3d.ai"`. When the loader
-and iframe are both served by Catalog3D in production, omit the override. See
-[Security and privacy](security-and-privacy.md#where-the-loaders-trust-anchor-comes-from).
 
 ```html
 <script src="https://catalog3d.ai/embed/v1/catalog3d.js"></script>
@@ -95,8 +86,7 @@ await handle.requestRemoval({
 });
 ```
 
-Resolution confirms that Catalog3D accepted the intent. It does not return a
-job, target, mask, room file, or progress object. Catalog3D owns those details.
+Resolution confirms that Catalog3D accepted the request.
 
 ## 5. Clean up or change products
 
@@ -110,10 +100,9 @@ full page navigation is often the simplest lifecycle.
 
 ## Product-page architecture
 
-Keep merchant commerce UI outside the iframe: title, price, variants, quantity,
-cart, recommendations, and navigation. Keep Catalog3D room UI inside the
-iframe. Recommendation cards should remain ordinary product links unless a
-future public API explicitly adds a higher-level catalog interaction.
+Keep merchant commerce UI—title, price, variants, quantity, cart,
+recommendations, and navigation—in the product page. Place Catalog3D in the
+product media area.
 
 See [`examples/product-page`](../examples/product-page/) for the complete
 reference.

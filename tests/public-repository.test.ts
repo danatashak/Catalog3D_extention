@@ -16,13 +16,10 @@ describe("public repository documentation and examples", () => {
       "docs/frameworks.md",
       "docs/security-and-privacy.md",
       "docs/versioning.md",
-      "docs/design-decisions.md",
-      "PUBLISHING.md",
       "examples/minimal-html/index.html",
       "examples/product-page/index.html",
       "examples/product-page/README.md",
       "LICENSE",
-      "CHANGELOG.md",
     ];
     await expect(Promise.all(documents.map((path) => access(resolve(root, path))))).resolves.toBeDefined();
   });
@@ -55,22 +52,18 @@ describe("public repository documentation and examples", () => {
     expect(source).toContain("catalog3d:room-ready");
   });
 
-  it("documents the complete public handle and the intentionally absent APIs", async () => {
+  it("documents the complete public handle", async () => {
     const apiReference = await read("docs/api-reference.md");
     expect(apiReference).toContain("destroy(): void");
     expect(apiReference).toContain("requestRemoval(request: { description: string })");
-    expect(apiReference).toContain("Public v1 has no `setProduct`");
   });
 
-  // The version string lives in five hand-edited places. Nothing injects it at
-  // build time, so this is what keeps a release from shipping a loader that
-  // reports a version its own changelog and docs disagree with.
+  // The version string is hand-edited, so keep every published copy aligned.
   it("states one consistent version across the package, source, types, and docs", async () => {
     const { version } = JSON.parse(await read("package.json")) as { version: string };
     expect(await read("src/index.ts")).toContain(`export const version = "${version}"`);
     expect(await read("src/index.d.ts")).toContain(`export declare const version = "${version}"`);
     expect(await read("docs/api-reference.md")).toContain(`The current version is \`${version}\``);
-    expect(await read("CHANGELOG.md")).toContain(`## ${version} -`);
   });
 
   it("ships a browser tag build and a module build that stay in step with src", async () => {

@@ -2,7 +2,7 @@
 
 /**
  * Regression tests for the pre-publication hardening pass. Each block names the
- * defect it locks down; see docs/design-decisions.md for the reasoning.
+ * defect it locks down.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

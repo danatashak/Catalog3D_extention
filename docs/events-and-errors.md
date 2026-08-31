@@ -6,21 +6,20 @@ Catalog3D dispatches DOM `CustomEvent` objects on the mount target.
 
 ### `catalog3d:ready`
 
-The iframe and private experience are ready. `Catalog3D.mount()` resolves at
-the same lifecycle point. The event has no detail payload (`detail` is `null`).
+Catalog3D is ready. `Catalog3D.mount()` resolves at the same lifecycle point.
+The event has no detail payload (`detail` is `null`).
 
 It fires once per mount. If the iframe reloads afterwards the loader
 re-initializes it silently; the event does not fire again.
 
 ### `catalog3d:room-ready`
 
-The shopper's room is ready for room-dependent intents such as object removal.
-The event intentionally contains no room image, file, scene, job, geometry, or
-artifact payload (`detail` is `null`).
+The shopper's room is ready for room-dependent actions such as object removal.
+The event has no detail payload (`detail` is `null`).
 
 It may fire more than once, so handlers should be idempotent. A room-dependent
-request can still reject with `ROOM_NOT_READY` if private room state changes
-after an earlier event; treat the command result as authoritative.
+request can still reject with `ROOM_NOT_READY` if the room changes after an
+earlier event.
 
 ### `catalog3d:error`
 
@@ -37,14 +36,12 @@ The error event is used for both lifecycle failures and rejected commands.
 
 - `BUSY`: another incompatible request is active. The loader raises this itself
   when `requestRemoval()` is called while one is already in flight.
-- `FRAME_LOAD_FAILED`: the Catalog3D iframe could not load. Browsers fire a
-  `load` event rather than an `error` event for HTTP 4xx/5xx responses and for
-  `X-Frame-Options` refusals, so most real load failures surface as `TIMEOUT`
-  instead. Handle both.
+- `FRAME_LOAD_FAILED`: Catalog3D could not load. Handle this and `TIMEOUT` as
+  unavailable states.
 - `INTERNAL_ERROR`: Catalog3D could not complete the operation safely.
 - `INVALID_CONFIG`: public mount configuration failed validation.
 - `INVALID_REQUEST`: a command payload failed validation.
-- `ORIGIN_DENIED`: the real parent origin is not registered for the site.
+- `ORIGIN_DENIED`: the page origin is not registered for the site.
 - `PRODUCT_NOT_FOUND`: the product is unavailable or not authorized.
 - `ROOM_NOT_READY`: a room-dependent command was sent too early.
 - `SITE_NOT_FOUND`: the publishable site registration is unavailable.

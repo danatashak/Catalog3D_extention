@@ -8,5 +8,4 @@ They are provided for running and evaluating this example and are not granted
 for unrelated redistribution, resale, dataset creation, or model training.
 
 Replace these URLs with merchant-owned product media when adapting the example.
-The 3D product shown inside the iframe is resolved from the configured public
-`productId`; no model URL belongs in the merchant page.
+The Catalog3D product is selected by the configured `productId`.

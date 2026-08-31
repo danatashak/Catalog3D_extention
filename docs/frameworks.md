@@ -1,7 +1,7 @@
 # React and Next.js
 
-Catalog3D is framework-independent. Framework integrations should wrap the same
-immutable mount lifecycle instead of creating another API.
+Catalog3D is framework-independent. Mount it when the client component is ready
+and destroy it during cleanup.
 
 Bundler-based apps can install the package and import `mount` directly instead of
 loading the browser tag:
@@ -101,7 +101,7 @@ export default function ProductPage() {
 }
 ```
 
-The iframe is browser-only. Product metadata, pricing, structured data, and
+Catalog3D mounts in the browser. Product metadata, pricing, structured data, and
 commerce controls can remain server-rendered.
 
 ## Strict Mode
